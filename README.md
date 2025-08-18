@@ -83,15 +83,21 @@ steps:
 | `proxy-server`             | Configure a proxy servier in the form of `<host>:<port>` e.g. `proxy-host.com:8080`                                                    |
 | `skip-github-release`      | If `true`, do not attempt to create releases. This is useful if splitting release tagging from PR creation.                            |
 | `skip-github-pull-request` | If `true`, do not attempt to create release pull requests. This is useful if splitting release tagging from PR creation.               |
+| `skip-labeling`            | If `true`, do not attempt to label the PR.                                                                                          |
 
 ## GitHub Credentials
 
 `release-please` requires a GitHub token to access the GitHub API. You configure this token via
 the `token` configuration option.
 
+If your repository is in an organization, you may need to
+[permit github actions to create an approve PRs](https://stackoverflow.com/questions/72376229).
+
 > [!WARNING]  
 > If using GitHub Actions, you will need to specify a `token` for your workflows to run on
-> Release Please's releases and PRs.
+> Release Please's releases and PRs. See [the heading below](#other-actions-on-release-please-prs).
+
+### Other Actions on Release Please PRs
 
 By default, Release Please uses the built-in `GITHUB_TOKEN` secret. However, all resources created
 by `release-please` (release tag or release pull request) will not trigger future GitHub actions workflows,
@@ -162,7 +168,7 @@ New types of releases can be [added here](https://github.com/googleapis/release-
 | output             | description                                                                                                                                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `releases_created` | `true` if any release was created, `false` otherwise                                                                                                              |
-| `paths_released`   | A JSON string of the array of paths that had releases created (`[]` if )                                                                                          |
+| `paths_released`   | A JSON string of the array of paths that had releases created (`[]` if nothing was released)                                                                                          |
 | `prs_created`      | `true` if any pull request was created or updated                                                                                                                 |
 | `pr`               | A JSON string of the [PullRequest object](https://github.com/googleapis/release-please/blob/main/src/pull-request.ts#L15) (unset if no release created)           |
 | `prs`              | A JSON string of the array of [PullRequest objects](https://github.com/googleapis/release-please/blob/main/src/pull-request.ts#L15) (unset if no release created) |
@@ -177,6 +183,7 @@ If you have a root component (path is `.` or unset), then the action will also o
 | `upload_url`         | Directly related to [**Create a release**](https://developer.github.com/v3/repos/releases/#response-4) API |
 | `html_url`           | Directly related to [**Create a release**](https://developer.github.com/v3/repos/releases/#response-4) API |
 | `tag_name`           | Directly related to [**Create a release**](https://developer.github.com/v3/repos/releases/#response-4) API |
+| `version`            | Number representing full semver value                                                                      |
 | `major`              | Number representing major semver value                                                                     |
 | `minor`              | Number representing minor semver value                                                                     |
 | `patch`              | Number representing patch semver value                                                                     |
@@ -195,10 +202,19 @@ This prefix allows you to distinguish values for different releases.
 | `<path>--upload_url`      | Directly related to [**Create a release**](https://developer.github.com/v3/repos/releases/#response-4) API |
 | `<path>--html_url`        | Directly related to [**Create a release**](https://developer.github.com/v3/repos/releases/#response-4) API |
 | `<path>--tag_name`        | Directly related to [**Create a release**](https://developer.github.com/v3/repos/releases/#response-4) API |
+| `<path>--version`         | Number representing full semver value                                                                      |
 | `<path>--major`           | Number representing major semver value                                                                     |
 | `<path>--minor`           | Number representing minor semver value                                                                     |
 | `<path>--patch`           | Number representing patch semver value                                                                     |
 | `<path>--sha`             | sha that a GitHub release was tagged at                                                                    |
+
+If the path contains `/` you can access the outputs by using javascript like property access `steps.release.outputs[<path>--...]` 
+e.g.:
+
+```yaml
+run: npm publish --workflow packages/my-module
+if: ${{ steps.release.outputs['packages/my-module--release_created'] }}
+```
 
 ## How release please works
 
@@ -390,7 +406,7 @@ you can see a mapping of the old option to the new option:
 | `changelog-path`                   | `$.packages[path].changelog-path`                                                     | Package-only option                                                                 |
 | `component`                        | `$.packages[path].component`                                                          | Package-only option                                                                 |
 | `package-name`                     | `$.packages[path].package-name`                                                       | Package-only option                                                                 |
-| `always-link-local`                | `$.always-link-loca`                                                                  | Root-only option                                                                    |
+| `always-link-local`                | `$.always-link-local`                                                                 | Root-only option                                                                    |
 | `bootstrap-sha`                    | `$.bootstrap-sha`                                                                     | Root-only option                                                                    |
 | `commit-search-depth`              | `$.commit-search-depth`                                                               | Root-only option                                                                    |
 | `group-pull-request-title-pattern` | `$.group-pull-request-title-pattern`                                                  | Root-only option                                                                    |
