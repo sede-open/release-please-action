@@ -36,7 +36,7 @@ jobs:
     #     git_dir: .
     #     fork: true
     #   env:
-    #     ACCESS_TOKEN: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}
+    #     ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release-please-release:
     runs-on: ubuntu-latest
     needs: [build]
@@ -71,7 +71,7 @@ jobs:
       - id: release-pr
         uses: sede-open/release-please-action@main
         with:
-          token: ${{ secrets.YOSHI_CODE_BOT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           release-type: node
           fork: true
           skip-github-release: true
